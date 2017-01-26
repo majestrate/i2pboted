@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/majestrate/i2pboted/configparser"
+	"i2pbote/configparser"
 )
 
 const DefaultI2PAddr = "127.0.0.1:7656"

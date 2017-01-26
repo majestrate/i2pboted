@@ -1,9 +1,9 @@
 package bote
 
 import (
-	"github.com/majestrate/i2pboted/config"
-	"github.com/majestrate/i2pboted/i2p"
-	"github.com/majestrate/i2pboted/log"
+	"i2pbote/config"
+	"i2pbote/i2p"
+	"i2pbote/log"
 )
 
 type Router struct {

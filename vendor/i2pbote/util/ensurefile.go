@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/majestrate/i2pboted/log"
+	"i2pbote/log"
 	"io"
 	"os"
 	"path/filepath"

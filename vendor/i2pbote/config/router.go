@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/majestrate/i2pboted/configparser"
+	"i2pbote/configparser"
 )
 
 const DefaultDataDir = "i2pbote-data"

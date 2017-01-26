@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/majestrate/i2pboted/configparser"
-	"github.com/majestrate/i2pboted/log"
-	"github.com/majestrate/i2pboted/util"
+	"i2pbote/configparser"
+	"i2pbote/log"
+	"i2pbote/util"
 )
 
 type Config struct {

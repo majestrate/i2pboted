@@ -2,7 +2,7 @@ package util
 
 import (
 	"crypto/rand"
-	"github.com/majestrate/i2pboted/i2p/base32"
+	"i2pbote/i2p/base32"
 	"io"
 	"strings"
 )

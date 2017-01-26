@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/majestrate/i2pboted/log"
+	"i2pbote/log"
 	"io"
 	"net"
 	"os"

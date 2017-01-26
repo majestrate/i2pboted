@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/majestrate/i2pboted/bote"
-	"github.com/majestrate/i2pboted/config"
-	"github.com/majestrate/i2pboted/i2p"
-	"github.com/majestrate/i2pboted/log"
+	"i2pbote/bote"
+	"i2pbote/config"
+	"i2pbote/i2p"
+	"i2pbote/log"
 	"os"
 )
 

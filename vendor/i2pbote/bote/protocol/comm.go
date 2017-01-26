@@ -3,7 +3,7 @@ package protocol
 import (
 	"bytes"
 	"errors"
-	"github.com/majestrate/i2pboted/util"
+	"i2pbote/util"
 )
 
 // comm packet type byte

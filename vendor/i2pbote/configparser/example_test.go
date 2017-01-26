@@ -2,7 +2,7 @@ package configparser_test
 
 import (
 	"fmt"
-	"github.com/majestrate/i2pboted/configparser"
+	"i2pbote/configparser"
 	"log"
 )
 

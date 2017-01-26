@@ -1,8 +1,8 @@
 package i2p
 
 import (
-	"github.com/majestrate/i2pboted/config"
-	"github.com/majestrate/i2pboted/util"
+	"i2pbote/config"
+	"i2pbote/util"
 	"net"
 )
 
