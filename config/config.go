@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/majestrate/i2pboted/configparser"
 	"github.com/majestrate/i2pboted/log"
+	"github.com/majestrate/i2pboted/util"
 )
 
 type Config struct {
@@ -11,6 +12,10 @@ type Config struct {
 }
 
 func Load(fname string) (*Config, error) {
+	err := util.EnsureFile(fname, 0)
+	if err != nil {
+		return nil, err
+	}
 	log.Debugf("load config from file: %s", fname)
 	cfg, err := configparser.Read(fname)
 

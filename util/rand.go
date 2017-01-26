@@ -2,7 +2,7 @@ package util
 
 import (
 	"crypto/rand"
-	"encoding/base32"
+	"github.com/majestrate/i2pboted/i2p/base32"
 	"io"
 	"strings"
 )
@@ -11,7 +11,7 @@ import (
 func RandStr(N int) (str string) {
 	b := make([]byte, N)
 	io.ReadFull(rand.Reader, b)
-	str = base32.StdEncoding.EncodeToString(b)
+	str = base32.Encoding.EncodeToString(b)
 	str = strings.ToLower(str[:N])
 	return
 }
