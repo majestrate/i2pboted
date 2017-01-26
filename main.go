@@ -15,7 +15,7 @@ func main() {
 	}
 	cfg, err := config.Load(fname)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 	r := bote.NewRouter(cfg.Router)
 	session, err := i2p.NewPacketSession(cfg.I2P)
