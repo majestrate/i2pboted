@@ -2,7 +2,8 @@ package log
 
 import (
 	"fmt"
-	native "log"
+	"os"
+	"time"
 )
 
 type logLevel int
@@ -41,20 +42,19 @@ func (l logLevel) Name() string {
 func (l logLevel) Color() string {
 	switch l {
 	case debug:
-		return "[37m"
+		return "\x1b[37;1m"
 	case info:
-		return "[36m"
+		return "\x1b[36;1m"
 	case warn:
-		return "[33;1m"
-	case fatal:
-	case error:
+		return "\x1b[33;1m"
 	default:
-		return "[31;1m"
+		return "\x1b[31;1m"
 	}
-	return ""
 }
 
 var level = debug
+
+var out = os.Stderr
 
 func accept(lvl logLevel) bool {
 	return lvl.Int() >= level.Int()
@@ -63,7 +63,8 @@ func accept(lvl logLevel) bool {
 func log(lvl logLevel, f string, args ...interface{}) {
 	if accept(lvl) {
 		m := fmt.Sprintf(f, args...)
-		native.Printf("\x1b%s[%s] %s", lvl.Color(), lvl.Name(), m)
+		t := time.Now()
+		fmt.Fprintf(out, "%s[%s] %s %s\x1b[0;0m\n", lvl.Color(), lvl.Name(), t, m)
 		if lvl == fatal {
 			panic(m)
 		}
