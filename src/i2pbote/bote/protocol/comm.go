@@ -23,6 +23,22 @@ const CommResponse = CommType(0x4e)
 const CommPeerListReq = CommType(0x41)
 const CommRelayReq = CommType(0x52)
 
+// name of comm packet type
+func (t CommType) Name() string {
+	switch t {
+	case CommRelayReq:
+		return "RelayRequest"
+	case CommPeerListReq:
+		return "PeerListRequest"
+	case CommResponse:
+		return "Response"
+	case CommFetchReq:
+		return "FetchRequest"
+	default:
+		return "Unknown"
+	}
+}
+
 // raw communication packet
 type CommPacket struct {
 	Type    CommType

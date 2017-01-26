@@ -1,9 +1,11 @@
 package bote
 
 import (
+	"i2pbote/bote/protocol"
 	"i2pbote/config"
 	"i2pbote/i2p"
 	"i2pbote/log"
+	"net"
 )
 
 type Router struct {
@@ -51,12 +53,47 @@ func (r *Router) Wait() error {
 	return err
 }
 
+func (r *Router) gotPacketFrom(data []byte, from net.Addr) {
+	log.Debugf("got %d bytes from remote peer", len(data))
+	pkt, err := protocol.ParseCommPacket(data)
+	if err != nil {
+		log.Warnf("%s : %s", from, err)
+		return
+	}
+	r.handleCommPacketFrom(pkt, from)
+}
+
+func (r *Router) handleCommPacketFrom(pkt *protocol.CommPacket, from net.Addr) {
+
+	log.Debugf("got CommPacket %s", pkt.Type.Name())
+	switch pkt.Type {
+	case protocol.CommRelayReq:
+		relayReq, err := pkt.RelayRequest()
+		if err == nil {
+			r.handleRelayRequest(relayReq, from)
+		} else {
+			log.Errorf("bad relay request packet: %s", err)
+		}
+	}
+}
+
+func (r *Router) handleRelayRequest(req *protocol.RelayRequest, from net.Addr) {
+	nextAddr := req.Next.ToAddr()
+	log.Debugf("got relay request to %s", nextAddr.Base32())
+}
+
 // blocking run mainloop
 func (r *Router) Run() {
 	log.Debug("i2pbote run mainloop")
-	var err error
-	for err == nil {
-
+	var b [i2p.DatagramMTU]byte
+	for {
+		n, from, err := r.session.ReadFrom(b[:])
+		if err != nil {
+			r.done <- err
+			return
+		}
+		msg := make([]byte, n)
+		copy(msg, b[:n])
+		go r.gotPacketFrom(msg, from)
 	}
-	r.done <- err
 }

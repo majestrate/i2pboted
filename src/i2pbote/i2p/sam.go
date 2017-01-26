@@ -14,6 +14,9 @@ import (
 	"time"
 )
 
+// MTU of datagrams
+const DatagramMTU = 65536
+
 var ErrDatagramOverflow = errors.New("datagram buffer overflow")
 
 // implements net.Conn
@@ -147,7 +150,7 @@ func (s *samPacketConn) WriteTo(d []byte, to net.Addr) (n int, err error) {
 }
 
 func (s *samPacketConn) ReadFrom(d []byte) (n int, addr net.Addr, err error) {
-	var b [65536]byte
+	var b [DatagramMTU]byte
 	rn, ra, err := s.c.ReadFrom(b[:])
 	if err == nil {
 		if ra != s.a {

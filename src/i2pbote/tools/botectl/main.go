@@ -8,6 +8,7 @@ import (
 	"net/rpc/jsonrpc"
 	"net/url"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -28,7 +29,9 @@ func main() {
 	cl := jsonrpc.NewClient(conn)
 	rpl := new(bote.RPCResult)
 	args := new(bote.RPCArgs)
-	meth := fmt.Sprintf("i2pbote.%s", os.Args[2])
+	// uppercase
+	methname := strings.ToUpper(os.Args[2][:1]) + os.Args[2][1:]
+	meth := fmt.Sprintf("i2pbote.%s", methname)
 	err = cl.Call(meth, args, rpl)
 	if err == nil {
 		log.Infof("%s result: %d", meth, rpl.Code)
