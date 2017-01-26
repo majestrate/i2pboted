@@ -38,6 +38,13 @@ func Main() {
 		serv := rpc.NewServer()
 		serv.RegisterName("i2pbote", r.RPC())
 		go func() {
+			defer func() {
+				l.Close()
+				if cfg.RPC.BindUnix != "" {
+					// remove unix socket
+					os.Remove(cfg.RPC.BindUnix)
+				}
+			}()
 			for {
 				c, e := l.Accept()
 				if e == nil {

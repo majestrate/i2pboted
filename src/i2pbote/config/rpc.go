@@ -13,7 +13,11 @@ type RPCConfig struct {
 }
 
 func (c *RPCConfig) Load(s *configparser.Section) {
-
+	if s != nil {
+		c.Enabled = s.Get("enable", "0") == "1"
+		c.BindInet = s.Get("inet", "")
+		c.BindUnix = s.Get("unix", "botectl.sock")
+	}
 }
 
 // create net.Listener for rpc

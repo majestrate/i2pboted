@@ -29,6 +29,7 @@ func (r *Router) Close() {
 		log.Debug("closing network session")
 		r.session.Close()
 	}
+	r.done <- nil
 }
 
 func (r *Router) GracefulClose() {
@@ -45,7 +46,9 @@ func (r *Router) RPC() *RPC {
 
 // wait until done
 func (r *Router) Wait() error {
-	return <-r.done
+	err := <-r.done
+	close(r.done)
+	return err
 }
 
 // blocking run mainloop
