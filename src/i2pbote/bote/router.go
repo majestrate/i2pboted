@@ -12,12 +12,14 @@ import (
 type Router struct {
 	session i2p.PacketSession
 	done    chan error
-	Handler protocol.Handler
+	handler protocol.Handler
 }
 
 func NewRouter(cfg config.RouterConfig) *Router {
+	handler := protocol.NewHandler()
 	return &Router{
-		done: make(chan error),
+		done:    make(chan error),
+		handler: handler,
 	}
 }
 
@@ -62,12 +64,11 @@ func (r *Router) gotPacketFrom(data []byte, from net.Addr) {
 		log.Warnf("%s : %s", from, err)
 		return
 	}
-	resp, err := r.Handler.CommPacket(pkt, from)
+	err = r.handler.CommPacket(pkt, from, r.session)
 	if err != nil {
-		log.Warnf("error making response: %s", err)
+		log.Warnf("packet error: %s", err)
 		return
 	}
-	r.session.WriteTo(resp.Raw[:], from)
 }
 
 // blocking run mainloop
@@ -82,6 +83,6 @@ func (r *Router) Run() {
 		}
 		msg := make([]byte, n)
 		copy(msg, b[:n])
-		go r.gotPacketFrom(msg, from)
+		r.gotPacketFrom(msg, from)
 	}
 }

@@ -6,5 +6,15 @@ import (
 )
 
 type Handler interface {
-	CommPacket(pkt *comm.Packet, from net.Addr) (*comm.Packet, error)
+	// handle a communication packet
+	CommPacket(pkt *comm.Packet, from net.Addr, c net.PacketConn) error
+	// handle relay request
+	RelayRequest(req *comm.RelayRequest, from net.Addr, c net.PacketConn) error
+}
+
+// create new packet handler
+func NewHandler() Handler {
+	return &handlerImpl{
+		limiter: NewLimiter(),
+	}
 }

@@ -12,4 +12,5 @@ type RelayRequest struct {
 	Return   chain.ReturnChain
 	Data     []byte
 	HashCash []byte
+	Raw      []byte
 }
