@@ -2,8 +2,8 @@ package i2p
 
 import (
 	"crypto/sha256"
-	"github.com/majestrate/i2pboted/lib/i2p/base32"
-	"github.com/majestrate/i2pboted/lib/i2p/base64"
+	"github.com/majestrate/i2pboted/i2p/base32"
+	"github.com/majestrate/i2pboted/i2p/base64"
 )
 
 // base64 long form of i2p destination, implements net.Addr

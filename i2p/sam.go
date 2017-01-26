@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/majestrate/i2pboted/lib/util"
+	"github.com/majestrate/i2pboted/log"
 	"io"
 	"net"
 	"os"
@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 )
+
+var ErrDatagramOverflow = errors.New("datagram buffer overflow")
 
 // implements net.Conn
 type samConn struct {
@@ -110,25 +112,36 @@ func (s *samPacketConn) EnsureKeyfile(fname string) (err error) {
 }
 
 func (s *samPacketConn) WriteTo(d []byte, to net.Addr) (n int, err error) {
-	if to.Network() != "I2P" {
+	if strings.ToUpper(to.Network()) != "I2P" {
 		err = errors.New("cannot send to non i2p network")
 		return
 	}
 	// build packet
-	// format is <base64address>\n<payload>
+	// format is 3.0 <sessionID> <base64address>\n<payload>
 	a := to.String()
-	l := len(a)
-	sd := make([]byte, len(d)+1+l)
-	copy(sd[:], []byte(a))
-	sd[l] = 10
-	copy(sd[1+l:], d)
+	// length of header
+	l := 4 + len(s.s.name) + 1 + len(a) + 1
+	sd := make([]byte, len(d)+l)
+	// "3.0 "
+	sd[0] = 51
+	sd[1] = 46
+	sd[2] = 48
+	sd[3] = 32
+	// <sessionID>
+	copy(sd[4:], []byte(s.s.name))
+	// " "
+	i := 4 + len(s.s.name)
+	sd[i] = 32
+	// <destination base64>
+	copy(sd[i:], []byte(a))
+	// line feed
+	sd[l-1] = 10
+	// payload
+	copy(sd[l:], d[:])
 	// send it to router
 	n, err = s.c.WriteTo(sd, s.a)
 	if err == nil {
-		n -= 1
 		n -= l
-	} else {
-		n = 0
 	}
 	return
 }
@@ -145,7 +158,14 @@ func (s *samPacketConn) ReadFrom(d []byte) (n int, addr net.Addr, err error) {
 		i := bytes.Index(b[:], []byte{10})
 		if i > 1 {
 			addr = Addr(string(b[:i+1]))
-			d = b[i+1 : rn]
+			l := rn - (i + 1)
+			if len(d) <= l {
+				copy(d[:], b[i+1:rn])
+			} else {
+				// overflow
+				n = -1
+				err = ErrDatagramOverflow
+			}
 		}
 	}
 	return
@@ -543,8 +563,8 @@ func newSession(name string) (s *samSession) {
 	return
 }
 
-func newSessionEasy(addr, keyfile string) (s *samSession, err error) {
-	name := util.RandStr(10)
+func newSessionEasy(addr, keyfile, name string) (s *samSession, err error) {
+	log.Debugf("create new i2p session with %s", addr)
 	s = newSession(name)
 	// dial out
 	s.c, err = s.connect(addr)
@@ -561,9 +581,9 @@ func newSessionEasy(addr, keyfile string) (s *samSession, err error) {
 }
 
 // create a new packet session with i2p "the easy way"
-func NewPacketSessionEasy(addr, keyfile string) (session PacketSession, err error) {
+func NewPacketSessionEasy(addr, keyfile, name string) (session PacketSession, err error) {
 	var s *samSession
-	s, err = newSessionEasy(addr, keyfile)
+	s, err = newSessionEasy(addr, keyfile, name)
 	if err == nil {
 		// parse addresses
 		var host, port string

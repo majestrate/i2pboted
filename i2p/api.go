@@ -1,6 +1,10 @@
 package i2p
 
-import "net"
+import (
+	"github.com/majestrate/i2pboted/config"
+	"github.com/majestrate/i2pboted/util"
+	"net"
+)
 
 // a session with an i2p router
 type Session interface {
@@ -31,4 +35,13 @@ type PacketSession interface {
 	Session
 	// implements net.PacketConn
 	net.PacketConn
+}
+
+// create new packet session from config
+func NewPacketSession(cfg config.I2PConfig) (PacketSession, error) {
+	name := cfg.SessionName
+	if name == "" {
+		name = util.RandStr(5)
+	}
+	return NewPacketSessionEasy(cfg.Addr, cfg.Keyfile, name)
 }
