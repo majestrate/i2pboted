@@ -11,7 +11,7 @@ type Router struct {
 }
 
 func NewRouter(cfg config.RouterConfig) *Router {
-	return nil
+	return &Router{}
 }
 
 func (r *Router) InjectNetwork(s i2p.PacketSession) {

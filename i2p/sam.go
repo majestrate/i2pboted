@@ -107,8 +107,8 @@ func (s *samPacketConn) LocalAddr() net.Addr {
 	return s.s.k.addr
 }
 
-func (s *samPacketConn) EnsureKeyfile(fname string) (err error) {
-	return
+func (s *samPacketConn) EnsureKeyfile(fname string) error {
+	return s.s.EnsureKeyfile(fname)
 }
 
 func (s *samPacketConn) WriteTo(d []byte, to net.Addr) (n int, err error) {
@@ -198,22 +198,22 @@ type samSession struct {
 }
 
 func (s *samSession) packet(samaddr *net.UDPAddr, bindip net.IP) (p *samPacketConn, err error) {
-	var ua *net.UDPAddr
 	// resolve local address to bind udp socket to
-	// bind to unused udp port on ip6
-	ua, err = net.ResolveUDPAddr("udp6", fmt.Sprintf("[%s]:0", bindip.To16()))
+	var ua *net.UDPAddr
+	ua, err = net.ResolveUDPAddr(samaddr.Network(), net.JoinHostPort(bindip.String(), "0"))
 	if err == nil {
 		p = &samPacketConn{
 			a: samaddr,
 			s: s,
 		}
-		p.c, err = net.ListenUDP(ua.Network(), ua)
+		p.c, err = net.ListenUDP(samaddr.Network(), ua)
 		if err == nil {
 			// bound
 			la := p.c.LocalAddr()
 			var host, port string
 			host, port, err = net.SplitHostPort(la.String())
 			if err == nil {
+				log.Debugf("create udp session forwarding to %s %s", host, port)
 				// talk to router and establish udp forwarding
 				_, err = fmt.Fprintf(s.c, "SESSION CREATE STYLE=DATAGRAM ID=%s DESTINATION=%s HOST=%s PORT=%s\n", s.name, s.k.priv, host, port)
 				// read response from udp forward
@@ -594,20 +594,24 @@ func NewPacketSessionEasy(addr, keyfile, name string) (session PacketSession, er
 			if err == nil {
 				p--
 				var ip *net.IPAddr
+				log.Debugf("resolve %s", host)
 				ip, err = net.ResolveIPAddr("ip", host)
 				if err == nil {
 					var samaddr *net.UDPAddr
-					samaddr, err = net.ResolveUDPAddr("udp6", fmt.Sprintf("[%s]:%d", ip.IP.To16().String(), p))
+					samaddr, err = net.ResolveUDPAddr("udp", net.JoinHostPort(ip.IP.String(), fmt.Sprintf("%d", p)))
 					if err == nil {
 						// find address that fits sam address
 						var ifaddrs []net.Addr
 						ifaddrs, err = net.InterfaceAddrs()
 						if err == nil {
+							log.Debugf("got %d network addresses", len(ifaddrs))
 							for _, ifaddr := range ifaddrs {
 								netip, ipnet, _ := net.ParseCIDR(ifaddr.String())
+								log.Debugf("network address %s %s", netip, ipnet)
 								if ipnet != nil && ipnet.Contains(ip.IP) {
 									// found an address to bind to
 									// create session
+									log.Debugf("found compatible netaddr: %s %s", samaddr, netip)
 									session, err = s.packet(samaddr, netip)
 									return
 								}

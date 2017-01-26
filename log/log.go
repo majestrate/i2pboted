@@ -42,9 +42,9 @@ func (l logLevel) Name() string {
 func (l logLevel) Color() string {
 	switch l {
 	case debug:
-		return "\x1b[37;1m"
+		return "\x1b[37;0m"
 	case info:
-		return "\x1b[36;1m"
+		return "\x1b[37;1m"
 	case warn:
 		return "\x1b[33;1m"
 	default:
