@@ -3,10 +3,6 @@
 *~
 *\#*
 
-
-# build files
-i2pboted
-
 # private files
 *.ini
 *.dat

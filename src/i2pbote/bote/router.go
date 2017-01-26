@@ -8,10 +8,13 @@ import (
 
 type Router struct {
 	session i2p.PacketSession
+	done    chan error
 }
 
 func NewRouter(cfg config.RouterConfig) *Router {
-	return &Router{}
+	return &Router{
+		done: make(chan error),
+	}
 }
 
 func (r *Router) InjectNetwork(s i2p.PacketSession) {
@@ -26,4 +29,31 @@ func (r *Router) Close() {
 		log.Debug("closing network session")
 		r.session.Close()
 	}
+}
+
+func (r *Router) GracefulClose() {
+	log.Info("graceful close started")
+	// TODO: begin graceful shutdown
+}
+
+// get bote rpc instance
+func (r *Router) RPC() *RPC {
+	return &RPC{
+		router: r,
+	}
+}
+
+// wait until done
+func (r *Router) Wait() error {
+	return <-r.done
+}
+
+// blocking run mainloop
+func (r *Router) Run() {
+	log.Debug("i2pbote run mainloop")
+	var err error
+	for err == nil {
+
+	}
+	r.done <- err
 }

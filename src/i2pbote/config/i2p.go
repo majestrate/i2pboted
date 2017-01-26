@@ -13,7 +13,7 @@ type I2PConfig struct {
 	SessionName string
 }
 
-func (c *I2PConfig) load(s *configparser.Section) {
+func (c *I2PConfig) Load(s *configparser.Section) {
 	if s == nil {
 		c.Addr = DefaultI2PAddr
 		c.Keyfile = DefaultI2PKeyfile

@@ -1,8 +1,11 @@
-BIN = i2pboted
+BOTECTL = botectl
+BOTED = i2pbote
 
-$(BIN): clean
-	GOPATH=$(PWD) go clean -v
-	GOPATH=$(PWD) go build -v -ldflags "-X i2pbote.Version=git-$(shell git rev-parse HEAD)" -o $(BIN)
+all: build
+
+build:
+	GOPATH=$(PWD) go build -v -ldflags "-X i2pbote.Version=git-$(shell git rev-parse HEAD)" -o $(BOTED)
+	GOPATH=$(PWD) go build -v -ldflags "-X i2pbote.Version=git-$(shell git rev-parse HEAD)" -o $(BOTECTL) i2pbote/tools/botectl
 
 clean:
-	rm -f $(BIN)
+	rm -f $(BOTED) $(BOTECTL)

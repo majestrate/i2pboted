@@ -9,6 +9,11 @@ import (
 type Config struct {
 	I2P    I2PConfig
 	Router RouterConfig
+	RPC    RPCConfig
+}
+
+type configLoadable interface {
+	Load(sect *configparser.Section)
 }
 
 func Load(fname string) (*Config, error) {
@@ -25,10 +30,16 @@ func Load(fname string) (*Config, error) {
 
 	c := new(Config)
 
-	s, _ := cfg.Section("i2p")
-	c.I2P.load(s)
-	s, _ = cfg.Section("bote")
-	c.Router.load(s)
+	m := map[string]configLoadable{
+		"i2p":  &c.I2P,
+		"bote": &c.Router,
+		"rpc":  &c.RPC,
+	}
+
+	for k, v := range m {
+		s, _ := cfg.Section(k)
+		v.Load(s)
+	}
 
 	return c, nil
 }

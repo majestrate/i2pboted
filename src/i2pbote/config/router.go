@@ -10,7 +10,7 @@ type RouterConfig struct {
 	DataDir string
 }
 
-func (c *RouterConfig) load(s *configparser.Section) {
+func (c *RouterConfig) Load(s *configparser.Section) {
 	if s == nil {
 		c.DataDir = DefaultDataDir
 	} else {
