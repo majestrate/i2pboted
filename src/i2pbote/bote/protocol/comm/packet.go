@@ -1,13 +1,14 @@
-package protocol
+package comm
 
 import (
 	"bytes"
 	"errors"
+	"i2pbote/bote/common"
 	"i2pbote/util"
 )
 
 // comm packet type byte
-type CommType byte
+type PacketType byte
 
 // protocol version
 type ProtoVersion byte
@@ -18,21 +19,21 @@ var pktHeader = []byte{0x6D, 0x30, 0x52, 0xe9}
 var ErrTooSmall = errors.New("packet is too small")
 var ErrBadHeader = errors.New("bad packet header")
 
-const CommFetchReq = CommType(0x46)
-const CommResponse = CommType(0x4e)
-const CommPeerListReq = CommType(0x41)
-const CommRelayReq = CommType(0x52)
+const FetchReq = PacketType(0x46)
+const Response = PacketType(0x4e)
+const PeerListReq = PacketType(0x41)
+const RelayReq = PacketType(0x52)
 
 // name of comm packet type
-func (t CommType) Name() string {
+func (t PacketType) Name() string {
 	switch t {
-	case CommRelayReq:
+	case RelayReq:
 		return "RelayRequest"
-	case CommPeerListReq:
+	case PeerListReq:
 		return "PeerListRequest"
-	case CommResponse:
+	case Response:
 		return "Response"
-	case CommFetchReq:
+	case FetchReq:
 		return "FetchRequest"
 	default:
 		return "Unknown"
@@ -40,19 +41,26 @@ func (t CommType) Name() string {
 }
 
 // raw communication packet
-type CommPacket struct {
-	Type    CommType
+type Packet struct {
+	Type    PacketType
 	Version ProtoVersion
 	Raw     []byte
 }
 
-func (pkt *CommPacket) Body() []byte {
+func (pkt *Packet) Body() []byte {
 	return pkt.Raw[6:]
 }
 
+// get as peer list packet
+func (pkt *Packet) PeerList() (cid common.CID, err error) {
+	if pkt.Type == PeerListReq {
+	}
+	return
+}
+
 // get as relay request
-func (pkt *CommPacket) RelayRequest() (r *RelayRequest, err error) {
-	if pkt.Type == CommRelayReq {
+func (pkt *Packet) RelayRequest() (r *RelayRequest, err error) {
+	if pkt.Type == RelayReq {
 		body := pkt.Body()
 		l := len(body)
 		if l < (32 + 2 + 4 + 384 + 2) {
@@ -87,7 +95,7 @@ func (pkt *CommPacket) RelayRequest() (r *RelayRequest, err error) {
 }
 
 // parse a comm packet from a byteslice
-func ParseCommPacket(data []byte) (pkt *CommPacket, err error) {
+func Parse(data []byte) (pkt *Packet, err error) {
 	if len(data) <= 6 {
 		err = ErrTooSmall
 		return
@@ -98,9 +106,9 @@ func ParseCommPacket(data []byte) (pkt *CommPacket, err error) {
 	}
 	raw := make([]byte, len(data))
 	copy(raw, data)
-	pkt = &CommPacket{
+	pkt = &Packet{
 		Raw:     raw,
-		Type:    CommType(data[4]),
+		Type:    PacketType(data[4]),
 		Version: ProtoVersion(data[5]),
 	}
 	return

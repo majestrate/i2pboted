@@ -2,6 +2,7 @@ package bote
 
 import (
 	"i2pbote/bote/protocol"
+	"i2pbote/bote/protocol/comm"
 	"i2pbote/config"
 	"i2pbote/i2p"
 	"i2pbote/log"
@@ -11,6 +12,7 @@ import (
 type Router struct {
 	session i2p.PacketSession
 	done    chan error
+	Handler protocol.Handler
 }
 
 func NewRouter(cfg config.RouterConfig) *Router {
@@ -55,31 +57,17 @@ func (r *Router) Wait() error {
 
 func (r *Router) gotPacketFrom(data []byte, from net.Addr) {
 	log.Debugf("got %d bytes from remote peer", len(data))
-	pkt, err := protocol.ParseCommPacket(data)
+	pkt, err := comm.Parse(data)
 	if err != nil {
 		log.Warnf("%s : %s", from, err)
 		return
 	}
-	r.handleCommPacketFrom(pkt, from)
-}
-
-func (r *Router) handleCommPacketFrom(pkt *protocol.CommPacket, from net.Addr) {
-
-	log.Debugf("got CommPacket %s", pkt.Type.Name())
-	switch pkt.Type {
-	case protocol.CommRelayReq:
-		relayReq, err := pkt.RelayRequest()
-		if err == nil {
-			r.handleRelayRequest(relayReq, from)
-		} else {
-			log.Errorf("bad relay request packet: %s", err)
-		}
+	resp, err := r.Handler.CommPacket(pkt, from)
+	if err != nil {
+		log.Warnf("error making response: %s", err)
+		return
 	}
-}
-
-func (r *Router) handleRelayRequest(req *protocol.RelayRequest, from net.Addr) {
-	nextAddr := req.Next.ToAddr()
-	log.Debugf("got relay request to %s", nextAddr.Base32())
+	r.session.WriteTo(resp.Raw[:], from)
 }
 
 // blocking run mainloop

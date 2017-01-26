@@ -1,4 +1,4 @@
-package protocol
+package chain
 
 type ReturnChainLink struct {
 }
