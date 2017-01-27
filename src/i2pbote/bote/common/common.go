@@ -5,15 +5,19 @@ import (
 	"i2pbote/i2p/base64"
 )
 
+const CIDLen = 32
+
 // correlation id
-type CID [32]byte
+type CID [CIDLen]byte
 
 func (cid CID) String() string {
 	return base64.Encoding.EncodeToString(cid[:])
 }
 
+const DestLen = 384
+
 // i2p destination
-type Destination [384]byte
+type Destination [DestLen]byte
 
 // base64 string representation
 func (d Destination) String() string {

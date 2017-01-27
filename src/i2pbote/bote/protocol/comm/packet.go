@@ -3,21 +3,18 @@ package comm
 import (
 	"bytes"
 	"errors"
-	"i2pbote/bote/common"
 	"i2pbote/util"
 )
 
 // comm packet type byte
 type PacketType byte
 
-// protocol version
-type ProtoVersion byte
-
 // i2pbote packet header
 var pktHeader = []byte{0x6D, 0x30, 0x52, 0xe9}
 
 var ErrTooSmall = errors.New("packet is too small")
 var ErrBadHeader = errors.New("bad packet header")
+var ErrInvalidSize = errors.New("invalid packet size")
 
 const FetchReq = PacketType(0x46)
 const Response = PacketType(0x4e)
@@ -40,27 +37,41 @@ func (t PacketType) Name() string {
 	}
 }
 
+func (t PacketType) Byte() byte {
+	return byte(t)
+}
+
 // raw communication packet
 type Packet struct {
-	Type    PacketType
-	Version ProtoVersion
-	Raw     []byte
+	Raw []byte
+}
+
+func (pkt *Packet) Type() PacketType {
+	return PacketType(pkt.Raw[4])
 }
 
 func (pkt *Packet) Body() []byte {
 	return pkt.Raw[6:]
 }
 
-// get as peer list packet
-func (pkt *Packet) PeerList() (cid common.CID, err error) {
-	if pkt.Type == PeerListReq {
+// get as peer list request packet
+func (pkt *Packet) PeerListRequest() (r *PeerListRequest, err error) {
+	if pkt.Type() == PeerListReq {
+		body := pkt.Body()
+		if len(body) == 32 {
+			r = &PeerListRequest{}
+			copy(r.CID[:], body[:])
+		} else {
+			// bad size
+			err = ErrInvalidSize
+		}
 	}
 	return
 }
 
 // get as relay request
 func (pkt *Packet) RelayRequest() (r *RelayRequest, err error) {
-	if pkt.Type == RelayReq {
+	if pkt.Type() == RelayReq {
 		body := pkt.Body()
 		l := len(body)
 		if l < (32 + 2 + 4 + 384 + 2) {
@@ -107,9 +118,17 @@ func Parse(data []byte) (pkt *Packet, err error) {
 	raw := make([]byte, len(data))
 	copy(raw, data)
 	pkt = &Packet{
-		Raw:     raw,
-		Type:    PacketType(data[4]),
-		Version: ProtoVersion(data[5]),
+		Raw: raw,
 	}
 	return
+}
+
+func New(version byte, t PacketType, payload []byte) *Packet {
+	body := make([]byte, 6+len(payload))
+	copy(body[:], pktHeader[:])
+	body[4] = version
+	body[5] = t.Byte()
+	return &Packet{
+		Raw: body,
+	}
 }

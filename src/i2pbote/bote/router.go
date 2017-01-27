@@ -15,8 +15,8 @@ type Router struct {
 	handler protocol.Handler
 }
 
-func NewRouter(cfg config.RouterConfig) *Router {
-	handler := protocol.NewHandler()
+func NewRouter(cfg *config.RouterConfig) *Router {
+	handler := protocol.NewHandler(cfg)
 	return &Router{
 		done:    make(chan error),
 		handler: handler,
@@ -83,6 +83,6 @@ func (r *Router) Run() {
 		}
 		msg := make([]byte, n)
 		copy(msg, b[:n])
-		r.gotPacketFrom(msg, from)
+		go r.gotPacketFrom(msg, from)
 	}
 }

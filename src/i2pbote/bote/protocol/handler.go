@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"i2pbote/bote/protocol/comm"
+	"i2pbote/config"
 	"net"
 )
 
@@ -13,8 +14,9 @@ type Handler interface {
 }
 
 // create new packet handler
-func NewHandler() Handler {
+func NewHandler(c *config.RouterConfig) Handler {
 	return &handlerImpl{
-		limiter: NewLimiter(),
+		limiter:     NewLimiter(),
+		relay_peers: NewFsPeerHolder(c.DataDir),
 	}
 }

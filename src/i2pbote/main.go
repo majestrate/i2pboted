@@ -22,7 +22,7 @@ func Main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	r := bote.NewRouter(cfg.Router)
+	r := bote.NewRouter(&cfg.Router)
 	log.Info("starting up i2p network connection")
 	session, err := i2p.NewPacketSession(cfg.I2P)
 	if err != nil {

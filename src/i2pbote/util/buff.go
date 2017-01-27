@@ -16,3 +16,7 @@ func UInt16(data []byte) uint16 {
 func UInt32(data []byte) uint32 {
 	return binary.BigEndian.Uint32(data)
 }
+
+func PutUInt16_i(i int, data []byte) {
+	binary.BigEndian.PutUint16(data[:], uint16(i))
+}
