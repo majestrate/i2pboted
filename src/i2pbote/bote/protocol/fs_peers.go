@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// filesystem based peer holder
 type FsPeerHolder struct {
 	File string
 	d    []common.Destination
