@@ -2,9 +2,13 @@ package protocol
 
 import (
 	"bufio"
+	"fmt"
 	"i2pbote/bote/common"
+	"i2pbote/i2p/base64"
+	"i2pbote/util"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type FsPeerHolder struct {
@@ -13,6 +17,12 @@ type FsPeerHolder struct {
 }
 
 func (f *FsPeerHolder) GetPeers(limit int) (p []common.Destination) {
+	if len(f.d) <= limit {
+		p = append(p, f.d...)
+	} else {
+		// TODO: randomize
+		p = append(p, f.d[:limit]...)
+	}
 	return
 }
 
@@ -21,7 +31,21 @@ func (f *FsPeerHolder) AddPeers(d []common.Destination) {
 }
 
 func (f *FsPeerHolder) loadPeerLine(line string) {
-
+	idx := strings.Index(line, "#")
+	if idx >= 0 {
+		line = line[:idx]
+	}
+	idx = strings.Index(line, "\t")
+	if idx > 0 {
+		d, err := base64.Encoding.DecodeString(line[:idx])
+		if err == nil {
+			if len(d) == common.DestLen {
+				var dest common.Destination
+				copy(dest[:], d[:])
+				f.d = append(f.d, dest)
+			}
+		}
+	}
 }
 
 func (f *FsPeerHolder) Load() (err error) {
@@ -42,7 +66,20 @@ func (f *FsPeerHolder) Load() (err error) {
 }
 
 func (f *FsPeerHolder) Store() (err error) {
-
+	err = util.EnsureFile(f.File, 0)
+	if err == nil {
+		var fd *os.File
+		fd, err = os.OpenFile(f.File, os.O_WRONLY, 0600)
+		if err == nil {
+			defer fd.Close()
+			_, err = fmt.Fprintf(fd, "# auto generated file\n")
+			if err == nil {
+				for _, d := range f.d {
+					fmt.Fprintf(fd, "%s\ttrue\n", d.String())
+				}
+			}
+		}
+	}
 	return
 }
 
