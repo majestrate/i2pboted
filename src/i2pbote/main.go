@@ -5,15 +5,15 @@ import (
 	"i2pbote/config"
 	"i2pbote/i2p"
 	"i2pbote/log"
+	"i2pbote/version"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"os"
+	"os/signal"
 )
 
-var Version = "0.0.0"
-
 func Main() {
-	log.Infof("starting i2pboted-%s", Version)
+	log.Infof("starting %s", version.Version())
 	fname := "bote.ini"
 	if len(os.Args) == 2 {
 		fname = os.Args[1]
@@ -22,12 +22,28 @@ func Main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	sigch := make(chan os.Signal)
 	r := bote.NewRouter(&cfg.Router)
 	log.Info("starting up i2p network connection")
 	session, err := i2p.NewPacketSession(cfg.I2P)
 	if err != nil {
-		log.Fatalf("failed to create i2p network context: %s", err)
+		log.Errorf("failed to create i2p network context: %s", err)
+		return
 	}
+	signal.Notify(sigch, os.Interrupt)
+	// signal handler
+	go func() {
+		for {
+			sig, ok := <-sigch
+			if !ok {
+				break
+			}
+			if sig == os.Interrupt {
+				log.Info("interrupt received, closing router")
+				r.Close()
+			}
+		}
+	}()
 	r.InjectNetwork(session)
 	if cfg.RPC.Enabled {
 		log.Info("RPC enabled")
@@ -35,14 +51,14 @@ func Main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		defer l.Close()
-		if cfg.RPC.BindUnix != "" {
-			defer os.Remove(cfg.RPC.BindUnix)
-		}
 		serv := rpc.NewServer()
 		serv.RegisterName("i2pbote", r.RPC())
 		go func() {
-			for {
+			defer l.Close()
+			if cfg.RPC.BindUnix != "" {
+				defer os.Remove(cfg.RPC.BindUnix)
+			}
+			for r.IsRunning() {
 				c, e := l.Accept()
 				if e == nil {
 					log.Infof("New RPC connection from %s", c.RemoteAddr())
@@ -54,6 +70,7 @@ func Main() {
 		}()
 	}
 	go r.Run()
+
 	err = r.Wait()
 	if err != nil {
 		log.Error(err.Error())

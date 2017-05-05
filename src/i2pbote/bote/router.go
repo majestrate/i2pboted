@@ -1,7 +1,7 @@
 package bote
 
 import (
-	"i2pbote/bote/protocol"
+	"i2pbote/bote/network"
 	"i2pbote/bote/protocol/comm"
 	"i2pbote/config"
 	"i2pbote/i2p"
@@ -12,20 +12,38 @@ import (
 type Router struct {
 	session i2p.PacketSession
 	done    chan error
-	handler protocol.Handler
+	swarm   network.Swarm
+	ready   bool
 }
 
 func NewRouter(cfg *config.RouterConfig) *Router {
-	handler := protocol.NewHandler(cfg)
 	return &Router{
-		done:    make(chan error),
-		handler: handler,
+		done:  make(chan error),
+		swarm: network.NewSwarm(cfg),
+		ready: true,
 	}
 }
 
 func (r *Router) InjectNetwork(s i2p.PacketSession) {
 	log.Infof("Aquired net context with address %s", s.I2PAddr().Base32())
 	r.session = s
+	r.swarm.InjectNetwork(s)
+}
+
+func (r *Router) TryBootstrap(b network.Bootstrap) error {
+	log.Infof("bootstrapping from %s", b.Name())
+	peers, err := b.GetPeers()
+	if err != nil {
+		return err
+	}
+	for idx := range peers {
+		r.swarm.EnsureSession(peers[idx])
+	}
+	return nil
+}
+
+func (r *Router) IsRunning() bool {
+	return r.session != nil && r.ready
 }
 
 // close router and network context
@@ -35,6 +53,8 @@ func (r *Router) Close() {
 		log.Debug("closing network session")
 		r.session.Close()
 	}
+	r.ready = false
+	r.session = nil
 	r.done <- nil
 }
 
@@ -64,7 +84,7 @@ func (r *Router) gotPacketFrom(data []byte, from net.Addr) {
 		log.Warnf("%s : %s", from, err)
 		return
 	}
-	err = r.handler.CommPacket(pkt, from, r.session)
+	err = r.swarm.CommPacket(pkt, from)
 	if err != nil {
 		log.Warnf("packet error: %s", err)
 		return
@@ -74,15 +94,13 @@ func (r *Router) gotPacketFrom(data []byte, from net.Addr) {
 // blocking run mainloop
 func (r *Router) Run() {
 	log.Debug("i2pbote run mainloop")
-	var b [i2p.DatagramMTU]byte
-	for {
+	for r.IsRunning() {
+		var b [i2p.DatagramMTU]byte
 		n, from, err := r.session.ReadFrom(b[:])
 		if err != nil {
 			r.done <- err
 			return
 		}
-		msg := make([]byte, n)
-		copy(msg, b[:n])
-		go r.gotPacketFrom(msg, from)
+		go r.gotPacketFrom(b[:n], from)
 	}
 }

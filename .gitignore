@@ -6,3 +6,7 @@
 # private files
 *.ini
 *.dat
+
+# build files
+boted
+bote-cli

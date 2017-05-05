@@ -4,4 +4,6 @@ package network
 type Bootstrap interface {
 	// get some peers from a bootstrap server or peer
 	GetPeers() ([]*PeerInfo, error)
+	// name of bootstrap method
+	Name() string
 }

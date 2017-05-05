@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	I2P    I2PConfig
-	Router RouterConfig
-	RPC    RPCConfig
+	Bootstrap BootstrapConfig
+	I2P       I2PConfig
+	Router    RouterConfig
+	RPC       RPCConfig
 }
 
 type configLoadable interface {
