@@ -25,7 +25,7 @@ func NewRouter(cfg *config.RouterConfig) *Router {
 }
 
 func (r *Router) InjectNetwork(s i2p.PacketSession) {
-	log.Infof("Aquired net context with address %s", s.I2PAddr().Base32())
+	log.Infof("Acquired net context with address %s", s.I2PAddr().Base32())
 	r.session = s
 	r.swarm.InjectNetwork(s)
 }

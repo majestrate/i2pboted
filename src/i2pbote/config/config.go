@@ -32,9 +32,10 @@ func Load(fname string) (*Config, error) {
 	c := new(Config)
 
 	m := map[string]configLoadable{
-		"i2p":  &c.I2P,
-		"bote": &c.Router,
-		"rpc":  &c.RPC,
+		"i2p":       &c.I2P,
+		"bootstrap": &c.Bootstrap,
+		"bote":      &c.Router,
+		"rpc":       &c.RPC,
 	}
 
 	for k, v := range m {

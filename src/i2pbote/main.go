@@ -2,6 +2,7 @@ package i2pbote
 
 import (
 	"i2pbote/bote"
+	"i2pbote/bote/network"
 	"i2pbote/config"
 	"i2pbote/i2p"
 	"i2pbote/log"
@@ -70,6 +71,13 @@ func Main() {
 		}()
 	}
 	go r.Run()
+
+	// bootstrap from seed node
+	strapper := network.NewNameBootstrap(cfg.Bootstrap.NodeAddr, session)
+	err = r.TryBootstrap(strapper)
+	if err != nil {
+		log.Warnf("bootstrap failed: %s", err.Error())
+	}
 
 	err = r.Wait()
 	if err != nil {

@@ -2,7 +2,7 @@ REPO = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BOTECTL = bote-cli
 BOTED = boted
 
-all: build test
+all: clean build
 
 build: $(BOTED) $(BOTECTL)
 
