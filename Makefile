@@ -12,7 +12,7 @@ $(BOTECTL):
 	GOPATH=$(REPO) go build -v -ldflags "-X i2pbote.version.Git=-$(shell git rev-parse --short HEAD)" -o $(BOTECTL) i2pbote/tools/botectl
 
 test:
-	GOPATH=$(REPO) go test -v i2pbote/...
+	GOPATH=$(REPO) go test i2pbote/...
 
 clean:
 	rm -f $(BOTED) $(BOTECTL)

@@ -13,6 +13,7 @@ const NoData = ResponseStatus(2)
 const InvalidPacket = ResponseStatus(3)
 const InvalidHashcash = ResponseStatus(4)
 const NotEnoughHashCash = ResponseStatus(5)
+const NoDiskSpaceLeft = ResponseStatus(6)
 
 func (s ResponseStatus) Byte() byte {
 	return byte(s)

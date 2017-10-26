@@ -24,18 +24,21 @@ func NewRouter(cfg *config.RouterConfig) *Router {
 	}
 }
 
+// give a network session to this router
 func (r *Router) InjectNetwork(s i2p.PacketSession) {
 	log.Infof("Acquired net context with address %s", s.I2PAddr().Base32())
 	r.session = s
 	r.swarm.InjectNetwork(s)
 }
 
+// try bootstrapping into the network one time
 func (r *Router) TryBootstrap(b network.Bootstrap) error {
 	log.Infof("bootstrapping from %s", b.Name())
 	peers, err := b.GetPeers()
 	if err != nil {
 		return err
 	}
+	log.Infof("got %d peers", len(peers))
 	for idx := range peers {
 		r.swarm.EnsureSession(peers[idx])
 	}
@@ -93,14 +96,14 @@ func (r *Router) gotPacketFrom(data []byte, from net.Addr) {
 
 // blocking run mainloop
 func (r *Router) Run() {
+	var b [i2p.DatagramMTU]byte
 	log.Debug("i2pbote run mainloop")
 	for r.IsRunning() {
-		var b [i2p.DatagramMTU]byte
 		n, from, err := r.session.ReadFrom(b[:])
 		if err != nil {
 			r.done <- err
 			return
 		}
-		go r.gotPacketFrom(b[:n], from)
+		r.gotPacketFrom(b[:n], from)
 	}
 }

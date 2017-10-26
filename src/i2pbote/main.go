@@ -72,8 +72,8 @@ func Main() {
 	}
 	go r.Run()
 
-	// bootstrap from seed node
-	strapper := network.NewNameBootstrap(cfg.Bootstrap.NodeAddr, session)
+	// bootstrap from seed nodes
+	strapper := network.NewFileBootstrap(cfg.Bootstrap.NodeFile, session)
 	err = r.TryBootstrap(strapper)
 	if err != nil {
 		log.Warnf("bootstrap failed: %s", err.Error())
